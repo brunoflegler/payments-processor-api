@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    container_name: processor-api
+    ports:
+      - "9999:9999"
+    expose:
+      - 9999
+    environment:
+      - NODE_ENV=development
+      - PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
+    volumes:
+      - ./:/app
+    command: npx nodemon src/index.js
+    networks:
+      - backend
+      - payment-processor
+
+networks:
+  backend:
+    driver: bridge
+  payment-processor:
+    external: true
