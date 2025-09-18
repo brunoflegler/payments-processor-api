@@ -1,62 +1,20 @@
-// Servidor HTTP simples que responde a todas as rotas GET na porta 9999
-import http from 'http'
-const processPid = process.pid
-const DEFAULT_HEADERS = {
-  'Content-Type': 'application/json'
-}
+import os from 'os'
+import cluster from 'cluster'
 
-const routes = {
-  'health:get': (request, response) => {
-    response.writeHead(200, DEFAULT_HEADERS)
-    return response.end(JSON.stringify({ mensagem: 'server is running' }))
-  },
-  'payments:post': async (request, response) => {
-    let body = ''
-    request.on('data', (chunk) => {
-      body += chunk
-    })
-    request.on('end', async () => {
-      const data = JSON.parse(body)
-      const { correlationId, amount } = data
+const runPrimary = () => {
+  console.log(`Primary ${process.pid} is running`)
 
-      // fazer uma requisição para API externa
-      const processorDefault = process.env.PROCESSOR_DEFAULT_URL
+  cluster.fork()
 
-      console.log('processorDefault', processorDefault)
-
-      await fetch(`${processorDefault}/payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          correlationId,
-          amount,
-          requestedAt: new Date().toISOString()
-        })
-      })
-
-      response.writeHead(201, DEFAULT_HEADERS)
-      return response.end()
-    })
-  },
-  default: (_, response) => {
-    response.writeHead(404, DEFAULT_HEADERS)
-    return response.end()
-  }
-}
-
-const handler = (request, response) => {
-  const { url, method } = request
-  const [, route] = url.split('/')
-  const key = `${route}:${method.toLowerCase()}`
-  const chosen = routes[key] || routes.default
-  return chosen(request, response)
-}
-
-http
-  .createServer(handler)
-  .listen(9999)
-  .once('listening', () => {
-    console.log(`Server is running PID: ${processPid}`)
+  cluster.on('exit', (worker) => {
+    console.log(`Worker ${worker.process.pid} died`)
+    console.log('Forking another worker!')
+    cluster.fork()
   })
+}
+
+const runWorker = async () => {
+  await import('./server.js')
+}
+
+cluster.isPrimary ? runPrimary() : runWorker()

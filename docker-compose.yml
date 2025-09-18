@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     build: .
@@ -12,11 +11,17 @@ services:
       - PROCESSOR_DEFAULT_URL=http://payment-processor-default:8080
       - PROCESSOR_FALLBACK_URL=http://payment-processor-fallback:8080
     volumes:
-      - ./:/app
-    command: npx nodemon src/index.js
+      - ./src:/app/src
+      - ./data/:/app/data/
+    command: npx nodemon src/server.js
     networks:
       - backend
       - payment-processor
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: "0.55"
+    #       memory: "100MB"
 
 networks:
   backend:
