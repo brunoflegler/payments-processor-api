@@ -5,6 +5,9 @@ const runPrimary = () => {
   console.log(`Primary ${process.pid} is running`)
 
   cluster.fork()
+  // cluster.fork()
+  // cluster.fork()
+  // cluster.fork()
 
   cluster.on('exit', (worker) => {
     console.log(`Worker ${worker.process.pid} died`)

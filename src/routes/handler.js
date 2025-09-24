@@ -1,5 +1,5 @@
 import { DEFAULT_HEADERS } from '../controllers/index.js'
-import db from '../db.js'
+// import db from '../db.js'
 import {
   healthController,
   getPaymentsSummaryController,
